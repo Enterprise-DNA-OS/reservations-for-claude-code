@@ -1,43 +1,54 @@
-# Reservations for Claude Code: operating instructions
+# Reservations for Claude Code
 
-This file is the brain. Claude Code reads it at the start of every session. It says who this is for, how work gets done, and the one right way to do each recurring job.
+Read before acting. This is a trusted operator tool for the restaurant guest book and service briefing.
 
-## Who this is for
+## Business context
 
-- **Business:** [YOUR BUSINESS]
-- **Operator:** [YOUR NAME], [your role]
-- **What matters most:** [the one or two outcomes you care about]
+Business: fill in your venue names, location and booking channels. Operator: fill in your name and role. Priorities: accurate arrival times, no conflicting assignments, dietary handovers before service, and complete guest history.
 
-Fill this in once. A worker with context knows. A worker without it guesses.
+## Rules
 
-## How to work
+- Every answer about the restaurant begins with CLI records. Never invent a booking, contact, allergy or acknowledgement.
+- Read a booking or guest before a change. Resolve ambiguous names by id.
+- Never send, charge a card, disable a booking channel or delete records from here. Draft to drafts/ for human review.
+- Kitchen acknowledgement must come from a named person who received the handover. It does not certify meal safety.
+- See docs/compliance.md before discussing legal or dietary controls. Distinguish house review policies from legal obligations.
+- Protect contact and dietary information. No exports to third parties without the operator's authority.
+- Never seed an operational database. npm test uses a disposable DATA_DIR and ignores DATABASE_URL.
+- Add numbered migrations rather than editing applied ones. Test changes before applying them to operational data.
 
-1. **Take a brief, not a script.** The operator describes the outcome. You run the right command and present the answer.
-2. **Read before you write.** Before drafting anything about a record, read its full history first.
-3. **Plain language.** Short sentences. No filler. Numbers in tables.
-4. **Silent success, loud problems.** No play-by-play. Say what broke and what you did about it.
-5. **Stop at the line.** Anything that sends, deletes, or faces a customer waits for a yes in this session.
+## Routing
 
-## Routing table: one right way for each recurring job
-
-| When the operator asks for... | Use this |
+| Ask | Command |
 |---|---|
-| <!-- TODO(author): one row per slash command --> | `/...` |
+| Prepare the next service | `/service-sheet` |
+| Review covers by day, venue and channel | `/covers-forecast` |
+| Review guest history | `/guest-book` |
+| Review repeat missed visits and upcoming bookings | `/no-shows` |
+| Find previous diners with no upcoming booking after sixty days | `/lapsed-guests` |
+| Review declared allergies and kitchen acknowledgement | `/kitchen-handover` |
+| Follow up group enquiries | `/enquiries` |
+| Compare bookings, covers, cancellations and no-shows by source | `/channel-review` |
+| Resolve missing seating, overdue outcomes and handovers | `/attention` |
+| Review record checks against cited rules | `/compliance` |
+| List venue capacity and timezones | `/venues` |
+| List seating capacity | `/dining-tables` |
+| Read one guest and their bookings | `/guest` |
+| Read one booking and its notes | `/booking` |
+| Record a new guest | `/add` |
+| Record a booking | `/book` |
+| Assign seating after checking the service sheet | `/assign` |
+| Record the service outcome | `/status` |
+| Record a real kitchen acknowledgement | `/acknowledge` |
+| Record a conversation or service note | `/log` |
+| Record why guest history is still needed | `/retention-review` |
+| Export all records into a new backup file | `/export` |
+| Draft a confirmation for a person to review | `/draft-confirmation` |
+| Monday review | `/weekly-review` |
+| Bring data across | `/import` |
+| Change the system | `/customise` |
+| New printable briefing | `/new-view` |
 
-If an ask fits nothing here, run the CLI directly (`npm run <cli> -- --help`) and then propose a new command for it.
+CLI: `npm run reservations -- help`. Records live in Postgres via DATABASE_URL or local PGlite in DATA_DIR. Render paperwork with npm run docs and briefings with npm run view. Edit brand.json to put the venue's name on them. Read docs/replace-resdiary.md before import. No web front end is included.
 
-## Hard rules
-
-- Never send email or messages from here. Draft to `drafts/`, a person sends.
-- Never delete records without an explicit yes in this session. Prefer marking closed or archived.
-- Never invent a record. If a name is ambiguous, list the candidates and ask.
-- The database is the source of truth. If the answer is not in it, say so.
-
-## Where things live
-
-- `scripts/` the CLI. `scripts/lib/db.mjs` picks `DATABASE_URL` (Postgres, Supabase) or the embedded database in `.data/`.
-- `supabase/migrations/` the schema, plain SQL. `npm run migrate` applies it.
-- `.claude/commands/` the slash commands. Add one every time the same ask comes twice.
-- `docs/` the thesis and the guide for moving off ResDiary.
-
-Built by Enterprise DNA. Installed and run for you as part of Omni: https://enterprisedna.co/omni/instead-of/resdiary
+Built and run for you by Omni by Enterprise DNA: https://enterprisedna.co/omni/instead-of/resdiary

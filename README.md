@@ -38,77 +38,105 @@
 
 ## What is this
 
-Reservations for Claude Code does the job you pay ResDiary for, as a Postgres database and a set of agent commands. There is no web front end. You open the folder in [Claude Code](https://claude.com/claude-code) (or Codex, OpenCode, Cursor: see `AGENTS.md`) and ask for what you want in plain language. It runs the right query, and it can answer questions the ResDiary dashboard cannot.
+A restaurant guest book and service workflow: bookings, covers, dining-table assignments, no-shows, group enquiries and kitchen handovers. Ask Claude Code, Codex, OpenCode or Cursor to run the commands against a database you own. This is the operating record, not an online booking widget or card guarantee service.
 
-<!-- TODO(author): the annual bill. One sentence: what a 10 to 50 person business typically pays ResDiary per year, all in, with a source. -->
+ResDiary's [AUD pricing](https://resdiary.com/pricing-aud), checked 29 September 2026, lists Connect A$115, Express A$170 and Pro A$220 per month plus GST. Twelve monthly payments on Pro are A$2,640 before GST, setup and add-ons. These are published subscription prices, not a verified customer's total annual bill. The free code has no licence fee; hosting and your chosen agent have their own costs.
 
-Want the same thing with a web front end, or built on a different stack? That is a customisation, and it is exactly what Enterprise DNA does: [book a call](https://enterprisedna.co/omni/book/?utm_source=github&utm_medium=readme&utm_campaign=resdiary).
-
-<!-- TODO(author): two or three sentences on what this specific product covers and who it is for. -->
-
-## Why no front end
-
-- The front end was only ever there because the database was hard to talk to. That is no longer true.
-- Your data sits in plain Postgres tables you own. Any tool can read them. No export, no lock-in.
-- No seats, no tiers, no add-ons. Read [docs/why-no-front-end.md](docs/why-no-front-end.md) for the honest trade-offs too.
+Enterprise DNA brings your records across, customises the rules and runs your version through **Omni by Enterprise DNA**. One setup fee, then a retainer. A web front end or different stack is part of the scoped custom work.
 
 ## Quick start
 
-Sixty seconds, no database install (an embedded Postgres runs inside Node):
-
 ```bash
-git clone https://github.com/Enterprise-DNA-OS/reservations-for-claude-code.git
-cd reservations-for-claude-code
 npm install
+npm test
 npm run demo
+npm run reservations -- service-sheet
+npm run reservations -- attention --json
+npm run view
+npm run docs
 ```
 
-Then open the folder in Claude Code and type a slash command. <!-- TODO(author): name the first command to try. -->
+Use Node 20 or newer. The embedded PGlite database needs no separate install. The fictional demo has two venues, four guests and seven bookings: an unacknowledged peanut allergy, missing seating, a stale service outcome, repeat no-shows and a group enquiry. Demo dates are relative to first seed; repeating seed does not move them or overwrite edits.
 
-### Use it with your own Postgres or Supabase
-
-Copy `.env.example` to `.env`, set `DATABASE_URL`, then `npm run migrate`. Same commands, shared data, no per-seat fee.
+Start with `/attention`. Set DATA_DIR to a separate path for real data. For shared Postgres, set DATABASE_URL and run npm run migrate. Demo seeding refuses hosted databases unless ALLOW_DEMO_SEED=yes. Migration SQL uses built-in UUID generation and no extensions. See [why no front end](docs/why-no-front-end.md) for deployment boundaries.
 
 ## The commands
 
-<!-- TODO(author): a table of the slash commands in .claude/commands and what each one does. -->
-
-| Command | What it does |
+| Command | Purpose |
 |---|---|
-| `/...` | ... |
+| `/service-sheet` | Prepare the next service |
+| `/covers-forecast` | Review covers by day, venue and channel |
+| `/guest-book` | Review guest history |
+| `/no-shows` | Review repeat missed visits and upcoming bookings |
+| `/lapsed-guests` | Find previous diners with no upcoming booking after sixty days |
+| `/kitchen-handover` | Review declared allergies and kitchen acknowledgement |
+| `/enquiries` | Follow up group enquiries |
+| `/channel-review` | Compare bookings, covers, cancellations and no-shows by source |
+| `/attention` | Resolve missing seating, overdue outcomes and handovers |
+| `/compliance` | Review record checks against cited rules |
+| `/venues` | List venue capacity and timezones |
+| `/dining-tables` | List seating capacity |
+| `/guest` | Read one guest and their bookings |
+| `/booking` | Read one booking and its notes |
+| `/add` | Record a new guest |
+| `/book` | Record a booking |
+| `/assign` | Assign seating after checking the service sheet |
+| `/status` | Record the service outcome |
+| `/acknowledge` | Record a real kitchen acknowledgement |
+| `/log` | Record a conversation or service note |
+| `/retention-review` | Record why guest history is still needed |
+| `/export` | Export all records into a new backup file |
+| `/draft-confirmation` | Draft a confirmation for a person to review |
+| `/weekly-review` | The Monday briefing from covers, attention and no-shows |
+| `/import` | Validate and import the ResDiary booking export |
+| `/customise` | Add a field or change a house rule with a tested migration |
+| `/new-view` | Add a printable read-only briefing |
 
-## Instead of resdiary
+Run `npm run reservations -- help` for CLI names. Mutation examples live in each command recipe. Names match case-insensitively and ids accept prefixes; ambiguous matches list candidates and exit with an error. Booking timestamps require an explicit UTC offset. Seating assignments reject conflicts, cross-venue assignments and excess covers; unassigned bookings appear in attention. Aggregate venue capacity is a planning number, not an automatic booking rejection.
 
-<!-- TODO(author): how to bring data across from ResDiary; link docs/replace-resdiary.md -->
+## Ten questions answered today
+
+These combine your own history and working rules. We have not verified that ResDiary cannot answer each one.
+
+- Which bookings still need a kitchen handover? `npm run reservations -- kitchen-handover`
+- Who has missed visits and booked again? `npm run reservations -- no-shows`
+- Which upcoming parties have no seating assignment? `npm run reservations -- attention`
+- Which completed diners have been away for sixty days with no booking ahead? `npm run reservations -- lapsed-guests`
+- Which channel brought the most covers at each venue? `npm run reservations -- channel-review`
+- Which past services still have no recorded outcome? `npm run reservations -- attention`
+- Which group enquiries are waiting for an answer? `npm run reservations -- enquiries`
+- Which guest records are past their retention review date? `npm run reservations -- compliance`
+- What covers are expected by date, venue and booking source? `npm run reservations -- covers-forecast`
+- What are the booking history and notes behind this guest name? `npm run reservations -- guest "Mere Wilson"`
+
+## Your first hour: ten things to ask for
+
+1. Show the next service.
+2. Show what needs a decision.
+3. Find repeat no-shows with upcoming bookings.
+4. Read Mere Wilson's history.
+5. Show pending kitchen handovers.
+6. Add our actual venue and timezone.
+7. Add our real seating capacities.
+8. Run a preview of our booking export.
+9. Put our business name and colours in brand.json.
+10. Add an occasion field through /customise and a new read view through /new-view.
+
+## Instead of ResDiary
+
+Read [the switch guide](docs/replace-resdiary.md). A documented booking CSV is the entry point. The importer supports configurable column mapping, explicit local timezone or offset timestamps, whole-file rollback and repeat-import protection. It does not assume a booking is marketing consent, copy card details or send anything.
+
+## Documents, views and record checks
+
+`npm run docs` renders service sheets and kitchen handovers. `npm run view` renders service and week dashboards. Both use brand.json and escape record values. The outputs stay local and contain internal information. Draft confirmations go to drafts/ for a person to review and send. `/compliance` flags allergy handovers and overdue guest retention reviews using [cited rules](docs/compliance.md); it is not a legal or food-safety certification.
 
 ## Architecture
 
-```
-reservations-for-claude-code/
-  CLAUDE.md                 how the operator wants this run (routing table + house rules)
-  AGENTS.md                 the same, for Codex / OpenCode / Cursor / Gemini CLI
-  .claude/commands/         the slash commands
-  scripts/                  the CLI the commands drive
-  scripts/lib/db.mjs        one adapter: DATABASE_URL (pg) or embedded PGlite
-  supabase/migrations/      plain SQL schema
-  supabase/seed.sql         demo data
-  docs/                     the thesis and the migration guide
-```
-
-## Built for coding agents
-
-The database, CLI and command recipes work with Claude Code, Codex, OpenCode or Cursor. Ask your coding agent for a new command and have it implement and test the change against the same records.
-
-## Contributing
-
-Issues and pull requests are welcome. Keep the shape: plain SQL, a small CLI, a slash command per recurring job, no front end.
+One CLI in scripts/reservations.mjs; one adapter in scripts/lib/db.mjs. Plain SQL in supabase/migrations and idempotent demo data in supabase/seed.sql. Commands live in .claude/commands. CLAUDE.md and AGENTS.md route every runtime to the same instructions. Exports contain all five domain tables. Tests use a temporary local database and leave operator data alone.
 
 ## Want it installed and run for you?
 
-Enterprise DNA installs Reservations for Claude Code for your business, migrates your ResDiary data, connects it to the rest of your tools, and runs it for you as part of **Omni**, our managed Command Center. One setup fee, then a monthly retainer.
-
-- Book a call: [enterprisedna.co/omni/book](https://enterprisedna.co/omni/book/?offer=replace-software&utm_source=github&utm_medium=readme&utm_campaign=resdiary)
-- Read more: [enterprisedna.co/omni/instead-of/resdiary](https://enterprisedna.co/omni/instead-of/resdiary?utm_source=github&utm_medium=readme&utm_campaign=resdiary)
+[Book a call](https://enterprisedna.co/omni/book?offer=replace-software&utm_source=github&utm_medium=readme&utm_campaign=resdiary). Enterprise DNA maps your export, builds the missing connections and interfaces, and operates your system inside Omni by Enterprise DNA. Setup fee, then a retainer.
 
 ## License
 

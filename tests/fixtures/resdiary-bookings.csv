@@ -1,0 +1,4 @@
+Booking Reference,Customer Name,Customer Email,Visit Date and Time,Covers,Status,Booking Source,Dietary Requirements,Booking Notes
+RD-100,Jordan Lee,jordan@example.test,2030-06-15 18:00,4,confirmed,phone,,"Window seat, please"
+RD-101,Robin Lee,jordan@example.test,2030-06-15 20:00,2,confirmed,website,Milk allergy,"Called to discuss
+menu choices"

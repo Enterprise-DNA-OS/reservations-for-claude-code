@@ -1,11 +1,28 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "service-sheet",
+    "title": "Service sheet",
+    "for_each": "select id,name from venues order by name",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "Upcoming arrivals",
+        "note": "Internal use. Check the booking and kitchen handover before service.",
+        "sql": "select reference,guest,arrival,dining_table,covers,status,allergy_note,kitchen_ack_by from v_service where venue_id=$1 and ends_at>now() and status in ('confirmed','seated') order by starts_at"
+      }
+    ]
+  },
+  {
+    "name": "kitchen-handover",
+    "title": "Kitchen handover",
+    "for_each": "select id,name from venues order by name",
+    "file": "name",
+    "sections": [
+      {
+        "title": "Declared dietary needs",
+        "note": "This record does not establish that a meal is safe. The kitchen verifies ingredients and cross-contact controls with the guest.",
+        "sql": "select reference,arrival,covers,allergy_note,kitchen_ack_by from v_service where venue_id=$1 and allergy_note<>'' and ends_at>now() and status in ('confirmed','seated') order by starts_at"
+      }
     ]
   }
 ]
